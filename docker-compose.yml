@@ -1,0 +1,95 @@
+networks:
+  default:
+    internal: false
+    name: test-default
+  internal:
+    internal: true
+    name: test-internal
+services:
+  app:
+    build: ./docker/app
+    container_name: test-app
+    depends_on:
+      cache:
+        condition: service_started
+      db:
+        condition: service_started
+      sessions:
+        condition: service_started
+    environment:
+      DATABASE_HOST: db
+      DATABASE_LOGIN: u
+      DATABASE_NAME: app
+      DATABASE_PASSWORD: u
+      XDEBUG_MODE: debug
+    image: app:local
+    networks:
+      internal:
+    restart: 'no'
+    volumes:
+      - .:/var/www/html:rw
+  cache:
+    container_name: test-cache
+    image: redis:alpine
+    networks:
+      internal:
+    restart: 'no'
+    volumes:
+      - cache:/data:rw
+  db:
+    build: ./docker/db
+    container_name: test-db
+    environment:
+      MARIADB_DATABASE: app
+      MARIADB_PASSWORD: u
+      MARIADB_ROOT_PASSWORD: u
+      MARIADB_USER: u
+    image: db:local
+    networks:
+      default:
+      internal:
+    ports:
+      - '3306:3306'
+    restart: 'no'
+    volumes:
+      - db:/var/lib/mysql:rw
+  mail:
+    container_name: test-mail
+    image: axllent/mailpit
+    networks:
+      default:
+      internal:
+    ports:
+      - '8025:8025'
+    restart: 'no'
+  sessions:
+    container_name: test-sessions
+    image: redis:alpine
+    networks:
+      internal:
+    restart: 'no'
+    volumes:
+      - sessions:/data:rw
+  web:
+    build: ./docker/web
+    container_name: test-web
+    depends_on:
+      app:
+        condition: service_started
+    hostname: test.local
+    image: web:local
+    networks:
+      default:
+      internal:
+    ports:
+      - '443:443'
+    restart: 'no'
+    volumes:
+      - .:/var/www/html:ro
+volumes:
+  cache:
+    name: test-cache
+  db:
+    name: test-db
+  sessions:
+    name: test-sessions
