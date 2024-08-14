@@ -53,6 +53,11 @@ services:
     restart: 'no'
     volumes:
       - db:/var/lib/mysql:rw
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
   mail:
     container_name: test-mail
     image: axllent/mailpit
@@ -82,7 +87,7 @@ services:
       default:
       internal:
     ports:
-      - '443:443'
+      - '80:80'
     restart: 'no'
     volumes:
       - .:/var/www/html:ro
